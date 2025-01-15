@@ -306,7 +306,7 @@ footer {
 .progress-bar {
     width: 100%;
     height: 4px;
-    background-color: rgb(82 82 91 / 0.3);
+    background-color: rgb(223 223 231 / 30%);
     border-radius: 2px;
     position: relative;
     margin-bottom: 3rem;
@@ -363,17 +363,21 @@ footer {
     }
 
     .music-boxes,
-    .playlist {
+    .playlist-boxes {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .volume-controls {
-        display: none;
     }
 
     .player-controls {
         flex-basis: auto;
         min-width: 390px;
+    }
+
+    .progress-bar {
+        width: 420px;
+    }
+
+    .volume-controls {
+        display: none;
     }
 
 }
@@ -385,7 +389,7 @@ footer {
     }
 
     .music-boxes,
-    .playlist {
+    .playlist-boxes {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
@@ -393,10 +397,6 @@ footer {
 }
 
 @media (min-width: 710px) {
-    .volume-controls {
-        display: flex;
-    }
-
     .player-controls {
         flex-basis: 540px;
         min-width: auto;
@@ -412,8 +412,15 @@ footer {
     }
 
     .music-boxes,
-    .playlist {
+    .playlist-boxes {
         grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    
+}
+
+@media (min-width: 865px) {
+    .volume-controls {
+        display: flex;
     }
 }
 
@@ -425,7 +432,7 @@ footer {
     }
 
     .music-boxes,
-    .playlist {
+    .playlist-boxes {
         grid-template-columns: repeat(5, minmax(0, 1fr));
     }
 
@@ -439,7 +446,7 @@ footer {
     }
 
     .music-boxes,
-    .playlist {
+    .playlist-boxes {
         grid-template-columns: repeat(6, minmax(0, 1fr));
     }
 }
