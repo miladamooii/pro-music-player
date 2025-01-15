@@ -457,11 +457,11 @@ function showLocalPlayList() {
     localSong = musics[0];
   }
   playList.innerHTML = "";
-
-  localList.forEach((music) => {
-    playList.insertAdjacentHTML(
-      "beforeend",
-      `<div class="music-box music-box-${music.musicId}" data-id='${music.musicId - 1}' >
+  if (localList) {
+    localList.forEach((music) => {
+      playList.insertAdjacentHTML(
+        "beforeend",
+        `<div class="music-box music-box-${music.musicId}" data-id='${music.musicId - 1}' >
       <div class="music__banner">
           <img src="${music.cover}"  alt="music_image" class="music-image">
           <div class="music__button-wrapper">
@@ -472,8 +472,9 @@ function showLocalPlayList() {
       </div>
       <div class="music-info">${music.artist} - ${music.title}</div>
       </div>`,
-    );
-  });
+      );
+    });
+  }
   showMusics();
 
   musicArtist.innerHTML = localSong.artist;
