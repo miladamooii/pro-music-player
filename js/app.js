@@ -130,6 +130,7 @@ function showMusics() {
       playSongByIconBox(btn, index);
       setTimeout(setDuration, 100);
       updateMusicInfoToFooter(musicBoxId - 1);
+      setCurrentSongLocal();
     });
   });
   setInterval(setCurrentTime, 1000);
@@ -183,10 +184,12 @@ function playSongByIconBox(playBtn, index) {
 
 // Function to find play box button by current song index
 function findPlayBoxBtn(currentIndex) {
-  let songIndex2 = musics.findIndex((music) => {
-    return music.id === +currentIndex;
+  let songIndex2;
+  musics.forEach((music, index) => {
+    if (music.id === currentIndex) {
+      songIndex2 = index;
+    }
   });
-
   let playBoxBtn = musicContainer.querySelector(`.music-box-${songIndex2 + 1} .music__button`);
   return playBoxBtn;
 }
@@ -198,10 +201,9 @@ function findPlayListBtn() {
 }
 
 // Function to change box icon to pause when playing
-function changeBoxIcon() {
-  currentSongIndex = JSON.parse(localStorage.getItem("currentSong"));
+function changeBoxIcon(currentSongIndex2) {
   let playBoxBtn;
-  playBoxBtn = findPlayBoxBtn(currentSongIndex.id);
+  playBoxBtn = findPlayBoxBtn(currentSongIndex2);
 
   let pauseIcon = document.querySelector(".fa-pause");
   if (pauseIcon) {
@@ -329,7 +331,7 @@ function setCurrentTime() {
   if (currentTimeMinutes < 10) {
     currentTimeMinutes = `0${currentTimeMinutes}`;
   }
-  musics[currentSongIndex.id - 1].currentPlayTime = audio.currentTime;
+  if (currentSongIndex) musics[currentSongIndex.id - 1].currentPlayTime = audio.currentTime;
   currentTime.innerHTML = `${currentTimeMinutes}:${currentTimeSeconds}`;
 }
 
@@ -382,7 +384,7 @@ function goToNextSong() {
   audio.play();
   playBtn.innerHTML = '<i class="fas fa-pause"></i>';
   setCurrentSongLocal();
-  changeBoxIcon();
+  changeBoxIcon(currentSongIndex + 1);
 }
 
 function setCurrentSongLocal() {
@@ -415,7 +417,7 @@ function goToPrevSong() {
   audio.play();
   playBtn.innerHTML = '<i class="fas fa-pause"></i>';
   setCurrentSongLocal();
-  changeBoxIcon();
+  changeBoxIcon(currentSongIndex + 1);
 }
 
 // Function to mute or unmute volume
