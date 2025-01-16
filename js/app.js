@@ -316,7 +316,7 @@ function selectPlayList(e) {
     playListBtn.innerHTML = '<i class="fas fa-play"></i>';
   }
   playSongByIconBox(playBoxBtn, index);
-  updateMusicInfoToFooter(index - 1);
+  updateMusicInfoToFooter(index);
 }
 
 // Function to show current time playing
