@@ -97,21 +97,24 @@ const musics = [
   },
 ];
 
-const localPlayList = [];
+let localPlayList = JSON.parse(localStorage.getItem("localPlayList"));
+// check if localPlayList is empty
+if (!localPlayList) {
+  localPlayList = [];
+}
 let currentSong;
 const playListMusics = [];
 let currentSongIndex;
-let localSong = JSON.parse(localStorage.getItem("currentSong"));
-if (localSong) {
-  currentSongIndex = localSong.id - 1;
+let localSongValue = JSON.parse(localStorage.getItem("currentSong"));
+// check if currentSong is empty
+if (localSongValue) {
+  currentSongIndex = localSongValue.id - 1;
 } else {
   currentSongIndex = 0;
-  localSong = musics[0];
+  localSongValue = musics[0];
 }
-
 let isFirstPlay = true;
 let musicBoxIndex = 1;
-let newLocalMusic;
 
 // IIFE to add event listener to all music boxes
 function showMusics() {
@@ -123,10 +126,10 @@ function showMusics() {
   const musicBoxBtns = document.querySelectorAll(".music-boxes .music__button");
   musicBoxBtns.forEach((btn, index) => {
     btn.addEventListener("click", (e) => {
-      const musicBox = e.target.parentElement.parentElement.parentElement;
+      const musicBoxId = e.target.parentElement.parentElement.parentElement.dataset.id;
       playSongByIconBox(btn, index);
       setTimeout(setDuration, 100);
-      updateMusicInfoToFooter(musicBox);
+      updateMusicInfoToFooter(musicBoxId - 1);
     });
   });
   setInterval(setCurrentTime, 1000);
@@ -161,7 +164,7 @@ function playSongByIconBox(playBtn, index) {
   let pauseIcon = document.querySelector(".fa-pause");
   if (playBtn.children[0].classList.contains("fa-pause")) {
     pauseSong(playBtn);
-    musics[currentSongIndex].currentPlayTime = audio.currentTime;
+    musics[localSongValue.id - 1].currentPlayTime = audio.currentTime;
   } else {
     if (pauseIcon) {
       pauseIcon.classList.remove("fa-pause");
@@ -180,8 +183,11 @@ function playSongByIconBox(playBtn, index) {
 
 // Function to find play box button by current song index
 function findPlayBoxBtn(currentIndex) {
-  let songIndex = musics.findIndex((music) => music.id === +currentIndex);
-  let playBoxBtn = document.querySelector(`.music-box-${songIndex + 1} .music__button`);
+  let songIndex2 = musics.findIndex((music) => {
+    return music.id === +currentIndex;
+  });
+
+  let playBoxBtn = musicContainer.querySelector(`.music-box-${songIndex2 + 1} .music__button`);
   return playBoxBtn;
 }
 
@@ -193,12 +199,16 @@ function findPlayListBtn() {
 
 // Function to change box icon to pause when playing
 function changeBoxIcon() {
-  const playBoxBtn = findPlayBoxBtn(localSong.id);
+  currentSongIndex = JSON.parse(localStorage.getItem("currentSong"));
+  let playBoxBtn;
+  playBoxBtn = findPlayBoxBtn(currentSongIndex.id);
+
   let pauseIcon = document.querySelector(".fa-pause");
   if (pauseIcon) {
     pauseIcon.classList.remove("fa-pause");
     pauseIcon.classList.add("fa-play");
   }
+
   playBoxBtn.children[0].classList.remove("fa-play");
   playBoxBtn.children[0].classList.add("fa-pause");
 }
@@ -219,16 +229,16 @@ function pauseSong(playBoxBtn) {
 
 // Function to play current song
 function playSongByPlayIcon() {
-  currentSongIndex = localSong.id - 1;
+  currentSongIndex = localSongValue.id - 1;
   setTimeout(setDuration, 100);
   // Check if it's the first time play
   if (isFirstPlay && !JSON.parse(localStorage.getItem("currentSong"))) {
     audio.src = musics[currentSongIndex].music;
-    updateMusicInfoToFooter();
     isFirstPlay = false;
-    localSong.id = 1;
+    localSongValue.id = 1;
+    updateMusicInfoToFooter(localSongValue.id - 1);
   }
-  const playBoxBtn = findPlayBoxBtn(localSong.id);
+  const playBoxBtn = findPlayBoxBtn(localSongValue.id);
   if (playBoxBtn.children[0].classList.contains("fa-pause")) {
     pauseSong(playBoxBtn);
     musics[currentSongIndex].currentPlayTime = audio.currentTime;
@@ -239,9 +249,9 @@ function playSongByPlayIcon() {
 }
 
 // Function to update music info to footer
-function updateMusicInfoToFooter() {
-  musicArtist.innerHTML = musics[currentSongIndex].artist;
-  musicTitle.innerHTML = musics[currentSongIndex].title;
+function updateMusicInfoToFooter(songIndex) {
+  musicArtist.innerHTML = musics[songIndex].artist;
+  musicTitle.innerHTML = musics[songIndex].title;
 }
 
 // Function to bookmark music
@@ -255,13 +265,15 @@ function bookmarkMusic(event) {
       playListMusics[playListMusics.length - 1].musicId = playListIndex;
     }
 
-    musics[currentSongIndex].isBookmarked = true;
+    musics[localSongValue.id - 1].isBookmarked = true;
     // if click again on bookmark button , remove selection from playlist
   } else {
-    const index = playListMusics.findIndex((music) => music.id === musics[currentSongIndex].id);
+    const index = playListMusics.findIndex((music) => music.id === musics[playListIndex].id);
     playListMusics.splice(index, 1);
-    musics[currentSongIndex].isBookmarked = false;
+    musics[playListIndex].isBookmarked = false;
   }
+
+  localStorage.setItem("localPlayList", JSON.stringify(playListMusics));
   updatePlayList(playListIndex);
 }
 
@@ -302,11 +314,13 @@ function selectPlayList(e) {
     playListBtn.innerHTML = '<i class="fas fa-play"></i>';
   }
   playSongByIconBox(playBoxBtn, index);
-  updateMusicInfoToFooter(playBox);
+  updateMusicInfoToFooter(index - 1);
 }
 
 // Function to show current time playing
 function setCurrentTime() {
+  currentSongIndex = JSON.parse(localStorage.getItem("currentSong"));
+
   let currentTimeMinutes = Math.floor(audio.currentTime / 60);
   let currentTimeSeconds = Math.floor(audio.currentTime % 60);
   if (currentTimeSeconds < 10) {
@@ -315,19 +329,21 @@ function setCurrentTime() {
   if (currentTimeMinutes < 10) {
     currentTimeMinutes = `0${currentTimeMinutes}`;
   }
-  musics[currentSongIndex].currentPlayTime = audio.currentTime;
+  musics[currentSongIndex.id - 1].currentPlayTime = audio.currentTime;
   currentTime.innerHTML = `${currentTimeMinutes}:${currentTimeSeconds}`;
 }
 
 function setLocalMusics() {
-  const currentSong = JSON.parse(localStorage.getItem("currentSong"));
-  localStorage.setItem("localPlayList", JSON.stringify(playListMusics));
+  let currentSong = JSON.parse(localStorage.getItem("currentSong"));
   if (currentSong) {
     currentSong.currentPlayTime = audio.currentTime;
     localStorage.setItem("currentSong", JSON.stringify(currentSong));
+  } else {
+    currentSong = musics[0];
+    localStorage.setItem("currentSong", JSON.stringify(currentSong));
   }
 }
-setInterval(setLocalMusics, 2000);
+setInterval(setLocalMusics, 100);
 
 // Function to show duration of the song
 function setDuration() {
@@ -352,55 +368,54 @@ function setDuration() {
 // Function to go to next song in the list by current index
 function goToNextSong() {
   const playBtn = document.querySelector("#play");
-  currentSongIndex = localSong.id - 1;
+  currentSongIndex = localSongValue.id - 1;
   currentSongIndex++;
-  localSong.id++;
-  // console.log(currentSongIndex);
+  localSongValue.id++;
 
   if (currentSongIndex > musics.length - 1) {
     currentSongIndex = 0;
-    localSong.id = 0;
+    localSongValue.id = 1;
   }
-  changeBoxIcon();
   setTimeout(setDuration, 100);
-  updateMusicInfoToFooter();
+  updateMusicInfoToFooter(currentSongIndex);
   audio.src = musics[currentSongIndex].music;
   audio.play();
   playBtn.innerHTML = '<i class="fas fa-pause"></i>';
   setCurrentSongLocal();
+  changeBoxIcon();
 }
 
 function setCurrentSongLocal() {
   currentSong = {
-    id: musics[currentSongIndex].id,
-    title: musics[currentSongIndex].title,
-    artist: musics[currentSongIndex].artist,
-    music: musics[currentSongIndex].music,
-    cover: musics[currentSongIndex].cover,
+    id: musics[localSongValue.id - 1].id,
+    title: musics[localSongValue.id - 1].title,
+    artist: musics[localSongValue.id - 1].artist,
+    music: musics[localSongValue.id - 1].music,
+    cover: musics[localSongValue.id - 1].cover,
     currentPlayTime: 1,
-    duration: musics[currentSongIndex].duration,
-    isBookmarked: musics[currentSongIndex].isBookmarked,
+    duration: musics[localSongValue.id - 1].duration,
+    isBookmarked: musics[localSongValue.id - 1].isBookmarked,
   };
   localStorage.setItem("currentSong", JSON.stringify(currentSong));
 }
 
 // Function to go to previous song in the list by current index
 function goToPrevSong() {
-  currentSongIndex = localSong.id - 1;
+  currentSongIndex = localSongValue.id - 1;
   const playBtn = document.querySelector("#play");
   currentSongIndex--;
-  localSong.id--;
+  localSongValue.id--;
   if (currentSongIndex < 0) {
     currentSongIndex = musics.length - 1;
-    localSong.id = musics.length - 1;
+    localSongValue.id = musics.length;
   }
   setTimeout(setDuration, 100);
-  updateMusicInfoToFooter();
-  changeBoxIcon();
+  updateMusicInfoToFooter(currentSongIndex);
   audio.src = musics[currentSongIndex].music;
   audio.play();
   playBtn.innerHTML = '<i class="fas fa-pause"></i>';
   setCurrentSongLocal();
+  changeBoxIcon();
 }
 
 // Function to mute or unmute volume
@@ -477,10 +492,10 @@ function showLocalPlayList() {
   }
   showMusics();
 
-  musicArtist.innerHTML = localSong.artist;
-  musicTitle.innerHTML = localSong.title;
-  audio.src = localSong.music;
-  audio.currentTime = localSong.currentPlayTime;
+  musicArtist.innerHTML = localSongValue.artist;
+  musicTitle.innerHTML = localSongValue.title;
+  audio.src = localSongValue.music;
+  audio.currentTime = localSongValue.currentPlayTime;
   setCurrentTime();
   setTimeout(setDuration, 100);
   updateProgress();
